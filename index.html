@@ -1,152 +1,520 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>MOULDMATE · TOKAI TIRE &amp; TRACK</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500;1,600&family=Noto+Sans+Thai:wght@300;400;500;600&family=Noto+Serif+Thai:wght@400;500;600&display=swap" rel="stylesheet"/>
-<style>
-:root{
-  color-scheme:dark;
-  --bg:#0a0809;--panel:#121012;--line:rgba(201,169,110,.24);--line2:rgba(255,255,255,.09);
-  --red:#a3202b;--red2:#c5303b;--ivory:#f3ede4;--muted:#9b948a;--gold:#c9a96e;
-  --serif:'Cormorant Garamond','Noto Serif Thai',serif;--sans:'Noto Sans Thai','Inter',sans-serif;
-  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
-}
-:root:not([data-theme="light"]){color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--sans);background:var(--bg);color:var(--ivory);font-weight:300;min-height:100vh;overflow-x:hidden;
-  background-image:radial-gradient(900px 700px at 85% 40%,rgba(163,32,43,.34),transparent 62%),radial-gradient(600px 500px at 0% 100%,rgba(163,32,43,.14),transparent 65%)}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 49.9%,rgba(201,169,110,.05) 50%,transparent 50.1%);}
-@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes tick{to{transform:translateX(-50%)}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TokaiSolidtire System - ระบบบริหารจัดการองค์กร</title>
 
-.topbar{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:1.4rem 6%;border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:.9rem}
-.brand img{height:38px;display:block}.brand img[src^="PASTE"]{display:none}
-.mark{width:36px;height:36px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:1.15rem;color:var(--gold)}
-.brand b{display:block;font-family:var(--serif);font-size:1.25rem;letter-spacing:.18em;font-weight:600;line-height:1.1}
-.brand small{font-size:.58rem;letter-spacing:.3em;color:var(--gold)}
-.pill{display:flex;align-items:center;gap:.7rem;font-size:.7rem;letter-spacing:.18em;color:var(--muted);border:1px solid var(--line2);padding:.45rem 1rem}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--red2);box-shadow:0 0 8px var(--red2)}
-#clock{color:var(--ivory);font-variant-numeric:tabular-nums}
+    <!-- ═══ AUTH GUARD: ซ่อนหน้าจนกว่าเซิร์ฟเวอร์ยืนยัน token ═══ -->
+    <style>html.auth-pending body{visibility:hidden}</style>
+    <script>document.documentElement.classList.add('auth-pending');</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+    (async function(){
+      // ⚠ ตรวจ URL นี้ให้ตรงกับหน้าล็อกอินจริงของคุณ
+      const LOGIN_URL = "index.html";
+      const sb = window.supabase.createClient(
+        "https://dhgjbpvbbixipxksqqzu.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoZ2picHZiYml4aXB4a3NxcXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5OTIxMjgsImV4cCI6MjEwMTU2ODEyOH0.kZBAN01vbe8kENacfofZewHvxQBCCd2OaTFKbcFYlpM"
+      );
 
-.ticker{position:relative;z-index:10;display:flex;height:40px;border-bottom:1px solid var(--line2);background:rgba(255,255,255,.015);overflow:hidden}
-.tag{flex:none;display:flex;align-items:center;padding:0 1.6rem;background:var(--red);font-size:.64rem;letter-spacing:.26em;font-weight:500;text-transform:uppercase}
-.tw{flex:1;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
-.tt{display:flex;align-items:center;height:100%;white-space:nowrap;width:max-content;animation:tick 40s linear infinite}
-.tt:hover{animation-play-state:paused}
-.ti{padding:0 2rem;font-size:.82rem;color:var(--muted)}.ti b{color:var(--ivory);font-weight:500;margin-right:.4rem}
-.ts{color:var(--gold);font-size:.5rem}
+      function deny(){
+        try { localStorage.removeItem('mm_user'); } catch(_){}
+        location.replace(LOGIN_URL);
+      }
 
-.main{position:relative;z-index:10;display:grid;grid-template-columns:1.1fr .9fr;gap:3rem;align-items:center;min-height:calc(100vh - 160px);padding:3rem 6% 2.5rem}
-.eyebrow{display:flex;align-items:center;gap:1rem;margin-bottom:1.8rem;font-size:.68rem;letter-spacing:.38em;color:var(--gold);animation:up .9s both}
-.eyebrow i{width:48px;height:1px;background:var(--gold)}
-h1{font-family:var(--serif);font-weight:500;line-height:1.02;margin-bottom:1.4rem;animation:up .9s .1s both}
-h1 .th{display:block;font-family:'Noto Serif Thai',serif;font-size:clamp(1rem,2vw,1.25rem);letter-spacing:.14em;color:var(--muted);margin-bottom:.9rem;font-weight:400}
-h1 .big{display:block;font-size:clamp(3rem,8vw,6rem);letter-spacing:.03em;font-weight:600;background:linear-gradient(180deg,#fff 30%,#d9c7a3);-webkit-background-clip:text;background-clip:text;color:transparent}
-h1 .it{display:block;font-size:clamp(1.8rem,4vw,3rem);font-style:italic;font-weight:500;color:var(--red2);margin-top:.1em}
-.rule{width:90px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);margin:1.8rem 0 2rem;animation:up .9s .18s both}
-.btns{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2.8rem;animation:up .9s .24s both}
-.btn{display:inline-flex;align-items:center;gap:.9rem;padding:1rem 2.1rem;font:500 .78rem var(--sans);letter-spacing:.2em;text-decoration:none;color:#fff;border-radius:2px;transition:background .3s,border-color .3s,color .3s,transform .3s}
-.btn:hover{transform:translateY(-2px)}
-.btn-p{background:var(--red);border:1px solid var(--red)}.btn-p:hover{background:var(--red2);border-color:var(--gold)}
-.btn-g{border:1px solid var(--gold);color:var(--gold)}.btn-g:hover{background:rgba(201,169,110,.1);color:#fff}
-.btn:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
-.stats{display:flex;max-width:540px;margin-bottom:2rem;animation:up .9s .3s both}
-.st{flex:1;padding:0 1.4rem;border-left:1px solid var(--line)}.st:first-child{padding-left:0;border-left:0}
-.st b{display:block;font-family:var(--serif);font-size:1.85rem;font-weight:600;line-height:1.1}
-.st span{font-size:.58rem;letter-spacing:.24em;color:var(--muted)}
-.meta{display:flex;flex-wrap:wrap;gap:.5rem 1.8rem;font-size:.82rem;color:var(--muted);animation:up .9s .36s both}
+      let token = null;
+      try { token = (JSON.parse(localStorage.getItem('mm_user') || 'null') || {}).token; } catch(_){}
 
-.emb{display:grid;place-items:center;animation:up 1.1s .2s both}
-.emb svg{width:min(94%,470px);height:auto;display:block;overflow:visible}
-.r1{transform-origin:250px 250px;animation:spin 120s linear infinite}
-.r2{transform-origin:250px 250px;animation:spin 80s linear infinite reverse}
-.lb{font-family:var(--sans);font-size:9px;letter-spacing:.3em;fill:var(--muted)}
+      // รับ token จาก URL (#t=...) กรณีหน้าล็อกอินอยู่คนละโดเมน
+      const m = location.hash.match(/[#&]t=([^&]+)/);
+      if (m){
+        token = decodeURIComponent(m[1]);
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+      if (!token) return deny();
 
-.credit{position:relative;z-index:10;text-align:center;font-size:.62rem;letter-spacing:.28em;color:#5f5a53;padding:1.4rem 6% 1.8rem;border-top:1px solid var(--line2);text-transform:uppercase}
+      try {
+        const { data, error } = await sb.rpc('get_session_user', { p_token: token });
+        if (error || !data) return deny();
 
-@media(max-width:980px){.main{grid-template-columns:1fr;gap:2rem}.emb{order:-1}.emb svg{width:min(66%,320px)}}
-@media(max-width:520px){.btns{flex-direction:column}.btn{justify-content:center}#clock{display:none}.tag{padding:0 1rem}.stats{flex-wrap:wrap;gap:1rem 0}.st{flex:1 1 33%;padding:0 .8rem}.st b{font-size:1.4rem}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important}}
-</style>
+        localStorage.setItem('mm_user', JSON.stringify({ ...data, token }));
+
+        const showName = () => {
+          const el = document.getElementById('userNameDisplay');
+          if (el) el.textContent = data.employee_name || data.employee_id;
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showName);
+        else showName();
+
+        document.documentElement.classList.remove('auth-pending');
+      } catch(_){
+        deny();
+      }
+    })();
+    </script>
+    <!-- ═══ END AUTH GUARD ═══ -->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Sarabun:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --dark-blue: #0d47a1;
+            --light-blue: #e8f0fe;
+            --gray-bg: #f5f7fa;
+            --text-dark: #202124;
+            --text-light: #5f6368;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+            --notice-urgent: #ff5252;
+            --notice-info: #2196f3;
+            --notice-warning: #ff9800;
+            --notice-success: #4caf50;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--gray-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 { font-family: 'Kanit', sans-serif; font-weight: 500; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 20px 0;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 12px rgba(13, 71, 161, 0.2);
+            margin-bottom: 40px;
+        }
+
+        .header-row { display: flex; align-items: center; gap: 20px; }
+
+        .logo-container { display: flex; align-items: center; gap: 15px; flex-shrink: 0; }
+
+        .logo-image {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; padding: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .logo-image img { width: 100%; height: 100%; object-fit: contain; }
+        .logo-text h1 { font-size: 1.6rem; margin-bottom: 3px; }
+        .logo-text p { font-size: 0.85rem; opacity: 0.9; }
+
+        .search-container { flex: 1; position: relative; min-width: 0; }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px 20px 12px 46px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-family: 'Sarabun', sans-serif;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: var(--transition);
+        }
+
+        .search-bar:focus { outline: none; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+
+        .search-icon {
+            position: absolute;
+            left: 18px; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 50px;
+            backdrop-filter: blur(4px);
+            transition: var(--transition);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .user-badge:hover { background: rgba(255,255,255,0.22); }
+        .user-badge i { font-size: 0.9rem; opacity: 0.85; }
+        .user-badge-info { line-height: 1.3; }
+        .user-greeting { font-size: 0.72rem; opacity: 0.8; display: block; }
+        .user-name { font-size: 0.95rem; font-weight: 500; font-family: 'Kanit', sans-serif; display: block; }
+
+        /* Notice Board */
+        .notice-board-container {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border-top: 5px solid var(--primary-blue);
+        }
+
+        .notice-board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notice-board-title { display: flex; align-items: center; gap: 10px; }
+        .notice-board-title h3 { font-size: 1.4rem; color: var(--text-dark); }
+
+        .notice-board-icon {
+            background-color: var(--primary-blue);
+            color: white;
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .notice-board-btn {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-family: 'Kanit', sans-serif;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .notice-board-btn:hover { background-color: #dce8ff; }
+
+        .notice-board-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .notice-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--notice-info);
+            transition: var(--transition);
+            border: 1px solid #eee;
+            border-left-width: 4px;
+        }
+
+        .notice-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-3px); }
+        .notice-card.urgent  { border-left-color: var(--notice-urgent); }
+        .notice-card.warning { border-left-color: var(--notice-warning); }
+        .notice-card.success { border-left-color: var(--notice-success); }
+        .notice-card.info    { border-left-color: var(--notice-info); }
+
+        .notice-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+
+        .notice-card-type {
+            font-size: 0.8rem; padding: 4px 10px;
+            border-radius: 20px; font-weight: 500; font-family: 'Kanit', sans-serif;
+        }
+
+        .notice-card-type.info    { background-color: rgba(33,150,243,0.1); color: var(--notice-info); }
+        .notice-card-type.urgent  { background-color: rgba(255,82,82,0.1);  color: var(--notice-urgent); }
+        .notice-card-type.warning { background-color: rgba(255,152,0,0.1);  color: var(--notice-warning); }
+        .notice-card-type.success { background-color: rgba(76,175,80,0.1);  color: var(--notice-success); }
+
+        .notice-card-icon { margin-right: 10px; font-size: 1.1rem; }
+        .notice-card-icon.info    { color: var(--notice-info); }
+        .notice-card-icon.urgent  { color: var(--notice-urgent); }
+        .notice-card-icon.warning { color: var(--notice-warning); }
+        .notice-card-icon.success { color: var(--notice-success); }
+
+        .empty-notices { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-notices i { font-size: 3rem; margin-bottom: 15px; color: #ddd; }
+
+        /* Main */
+        .main-title { text-align: center; margin-bottom: 30px; color: var(--text-dark); }
+        .main-title h2 { font-size: 2rem; margin-bottom: 10px; }
+        .main-title p { color: var(--text-light); max-width: 600px; margin: 0 auto; }
+
+        .departments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .department-card {
+            background: white; border-radius: var(--border-radius);
+            padding: 25px; box-shadow: var(--card-shadow);
+            transition: var(--transition); cursor: pointer;
+            border-left: 5px solid var(--primary-blue);
+            height: 100%; display: flex; flex-direction: column;
+        }
+
+        .department-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow-hover); }
+
+        .card-header { display: flex; align-items: center; margin-bottom: 20px; }
+
+        .card-icon {
+            width: 60px; height: 60px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin-right: 15px; font-size: 1.8rem; color: white; flex-shrink: 0;
+        }
+
+        .card-icon.maintenance { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
+        .card-icon.it          { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+        .card-icon.hr          { background: linear-gradient(135deg, #ffe66d, #ffd166); }
+        .card-icon.vehicle     { background: linear-gradient(135deg, #1a936f, #136f63); }
+        .card-icon.accounting  { background: linear-gradient(135deg, #9d4edd, #6a2c9c); }
+        .card-icon.store       { background: linear-gradient(135deg, #ff9a00, #ff6a00); }
+        .card-icon.supplychain { background: linear-gradient(135deg, #3a86ff, #265eb8); }
+
+        .card-title h3 { font-size: 1.3rem; margin-bottom: 5px; }
+        .card-title p  { font-size: 0.9rem; color: var(--text-light); }
+        .card-description { margin-bottom: 20px; flex-grow: 1; color: var(--text-light); }
+        .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+
+        .visit-btn {
+            background-color: var(--primary-blue); color: white; border: none;
+            padding: 10px 18px; border-radius: 8px;
+            font-family: 'Kanit', sans-serif; cursor: pointer;
+            transition: var(--transition); display: flex; align-items: center; gap: 8px;
+        }
+
+        .visit-btn:hover { background-color: var(--dark-blue); }
+        .external-link { color: var(--primary-blue); font-size: 1.2rem; }
+
+        /* Footer */
+        footer {
+            background-color: white; padding: 25px 0;
+            margin-top: 30px; border-top: 1px solid #e0e0e0;
+            text-align: center; color: var(--text-light);
+        }
+
+        .footer-content { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .footer-logo-container { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .footer-logo { font-weight: 600; color: var(--primary-blue); font-size: 1.2rem; }
+        .footer-logo-img { width: 40px; height: 40px; }
+        .footer-logo-img img { width: 100%; height: 100%; object-fit: contain; }
+
+        .no-results { text-align: center; padding: 40px; grid-column: 1 / -1; color: var(--text-light); }
+        .no-results i { font-size: 3rem; margin-bottom: 15px; color: #ccc; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-row { flex-wrap: wrap; }
+            .logo-container { flex: 1 1 100%; justify-content: center; }
+            .search-container { flex: 1 1 100%; order: 3; }
+            .user-badge { align-self: center; }
+            .notice-board-grid { grid-template-columns: 1fr; }
+            .departments-grid { grid-template-columns: 1fr; gap: 20px; }
+            .main-title h2 { font-size: 1.6rem; }
+            .notice-board-header { flex-direction: column; gap: 15px; align-items: flex-start; }
+        }
+    </style>
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <!-- ⚠️ วางโลโก้ base64 เดิมของคุณแทน PASTE_LOGO_BASE64_HERE -->
-    <img src="PASTE_LOGO_BASE64_HERE" alt="TOKAI TIRE &amp; TRACK"/>
-    <div class="mark">M</div>
-    <div><b>MOULDMATE</b><small>TOKAISOLIDTIRE</small></div>
-  </div>
-  <div class="pill"><span class="dot"></span><span>LIVE</span><span id="clock">--:--:--</span></div>
-</header>
+    <header>
+        <div class="container">
+            <div class="header-row">
+                <!-- Logo ซ้าย -->
+                <div class="logo-container">
+                    <div class="logo-image">
+                        <img src="https://mouldmate.vercel.app/logo/logotokai.png" alt="TokaiSolidTire Logo"
+                             onerror="this.onerror=null;this.src='https://via.placeholder.com/60/1a73e8/FFFFFF?text=T';">
+                    </div>
+                    <div class="logo-text">
+                        <h1>TokaiSolidTire System</h1>
+                        <p>ระบบบริหารจัดการองค์กร</p>
+                    </div>
+                </div>
 
-<div class="ticker">
-  <div class="tag">ข่าวสาร</div>
-  <div class="tw"><div class="tt" id="tt">
-    <span class="ti"><b>อัปเดตระบบ:</b>บันทึก Backup อัตโนมัติทุกวัน</span><span class="ts">◆</span>
-    <span class="ti"><b>แจ้งเตือน:</b>ปิดปรับปรุงระบบทุกวันเสาร์ 22:00–24:00 น.</span><span class="ts">◆</span>
-    <span class="ti"><b>แม่พิมพ์ชุดใหม่:</b>MM-04 ถึง MM-09 พร้อมประเมินแล้ววันนี้</span><span class="ts">◆</span>
-    <span class="ti"><b>ประกาศ:</b>พนักงานใหม่กรุณาลงทะเบียนก่อนเข้าใช้งานระบบ</span><span class="ts">◆</span>
-    <span class="ti"><b>มาตรฐาน:</b>ตรวจสอบค่าความเที่ยงตรง ±0.01 มม. ทุกรอบการผลิต</span><span class="ts">◆</span>
-  </div></div>
-</div>
+                <!-- Search กลาง -->
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-bar" id="searchInput" placeholder="ค้นหาแผนก...">
+                </div>
 
-<main class="main">
-  <section>
-    <div class="eyebrow"><i></i><span>TOKAISOLIDTIRE</span></div>
-    <h1><span class="th">ยินดีต้อนรับ</span><span class="big">MOULDMATE</span><span class="it">Helpdesk</span></h1>
-    <div class="rule"></div>
-    <div class="btns">
-      <a class="btn btn-p" href="https://testproject-blue-tau.vercel.app/Login.html" target="_blank" rel="noopener">เข้าสู่ระบบ&nbsp;→</a>
-      <a class="btn btn-g" href="https://sarawutc6689-cpu.github.io/Mouldmate-Estimate/Model1.html" target="_blank" rel="noopener">แบบสำรวจและประเมิน</a>
-    </div>
-    <div class="stats">
-      <div class="st"><b>±0.01</b><span>TOLERANCE MM</span></div>
-      <div class="st"><b>MM-04–09</b><span>NEW MOULDS</span></div>
-      <div class="st"><b>Daily</b><span>AUTO BACKUP</span></div>
-    </div>
-    <div class="meta"><span>เฉพาะพนักงานที่ลงทะเบียน</span><span>ระบบความปลอดภัยสูง</span><span>ติดตามสถานะเรียลไทม์</span></div>
-  </section>
+                <!-- User Badge ขวา -->
+                <div class="user-badge">
+                    <i class="fas fa-user"></i>
+                    <div class="user-badge-info">
+                        <span class="user-greeting">ยินดีต้อนรับ</span>
+                        <span class="user-name" id="userNameDisplay">กำลังโหลด...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-  <section class="emb" aria-hidden="true">
-    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-      <defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#a3202b" stop-opacity=".45"/><stop offset="1" stop-color="#a3202b" stop-opacity="0"/></radialGradient></defs>
-      <circle cx="250" cy="250" r="220" fill="url(#g)"/>
-      <g class="r1" fill="none">
-        <circle cx="250" cy="250" r="226" stroke="rgba(201,169,110,.5)" stroke-width="1"/>
-        <circle cx="250" cy="250" r="214" stroke="rgba(201,169,110,.35)" stroke-width="8" stroke-dasharray="1 9.4"/>
-        <circle cx="250" cy="250" r="226" stroke="#c9a96e" stroke-width="3" stroke-dasharray="1 354" />
-      </g>
-      <g class="r2" fill="none">
-        <circle cx="250" cy="250" r="176" stroke="rgba(197,48,59,.7)" stroke-width="1"/>
-        <circle cx="250" cy="250" r="166" stroke="rgba(163,32,43,.55)" stroke-width="14" stroke-dasharray="2.5 12"/>
-      </g>
-      <circle cx="250" cy="250" r="128" fill="#0c0a0b" stroke="rgba(201,169,110,.55)" stroke-width="1"/>
-      <circle cx="250" cy="250" r="118" fill="none" stroke="rgba(255,255,255,.1)"/>
-      <path d="M250,140v14M250,346v14M140,250h14M346,250h14" stroke="rgba(201,169,110,.7)"/>
-      <text x="250" y="270" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="84" font-weight="600" fill="#f3ede4">M</text>
-      <text x="250" y="206" text-anchor="middle" class="lb" fill="#c9a96e">EST. 2026</text>
-      <text x="250" y="304" text-anchor="middle" class="lb">SOLID TIRE MOULD</text>
-      <text x="250" y="322" text-anchor="middle" class="lb" fill="#c5303b">TOLERANCE ±0.01 MM</text>
-    </svg>
-  </section>
-</main>
+    <main class="container">
+        <!-- Notice Board -->
+        <div class="notice-board-container">
+            <div class="notice-board-header">
+                <div class="notice-board-title">
+                    <div class="notice-board-icon"><i class="fas fa-bullhorn"></i></div>
+                    <h3>กระดานประกาศองค์กร</h3>
+                    <span id="noticeCount" style="background-color:var(--primary-blue);color:white;padding:2px 8px;border-radius:10px;font-size:.9rem;margin-left:10px;">0</span>
+                </div>
+                <div class="notice-board-controls">
+                    <button class="notice-board-btn" id="toggleNoticesBtn">
+                        <i class="fas fa-chevron-down"></i> ซ่อนประกาศ
+                    </button>
+                </div>
+            </div>
+            <div class="notice-board-grid" id="noticeBoard"></div>
+        </div>
 
-<footer class="credit">Developed by Sarawut.C · © 2026 | TOKAISOLIDTIRE</footer>
+        <div class="main-title">
+            <h2>แผนกในระบบ TokaiSolidtire</h2>
+            <p>เข้าถึงระบบงานของแผนกต่างๆ ได้จากลิงก์ด้านล่างนี้</p>
+        </div>
 
-<script>
-(function(){
-  var c=document.getElementById('clock');
-  function t(){c.textContent=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:'Asia/Bangkok'});}
-  t();setInterval(t,1000);
-  var tt=document.getElementById('tt');tt.innerHTML+=tt.innerHTML;
-})();
-</script>
+        <div class="departments-grid" id="departmentsGrid"></div>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-logo-container">
+                <div class="footer-logo-img">
+                    <img src="https://mouldmate.vercel.app/logo/logotokai.png" alt="TokaiSolidTire Logo"
+                         onerror="this.onerror=null;this.src='https://via.placeholder.com/40/1a73e8/FFFFFF?text=T';">
+                </div>
+                <div class="footer-logo">TokaiSolidTire System</div>
+            </div>
+            <p>© 2026 ระบบบริหารจัดการองค์กรครบวงจร | ออกแบบเพื่อความสะดวกและประสิทธิภาพ</p>
+            <span>พัฒนาระบบโดย Sarawut.C</span>
+        </div>
+    </footer>
+
+    <script>
+        function loadUserName() {
+            // ชื่อจริงจะถูกเติมโดยตัวตรวจสิทธิ์ใน <head> หลังเซิร์ฟเวอร์ยืนยัน token
+            try {
+                const u = JSON.parse(localStorage.getItem('mm_user') || 'null');
+                if (u && u.employee_name) document.getElementById('userNameDisplay').textContent = u.employee_name;
+            } catch(_) {}
+        }
+
+        const departments = [
+            { id:1, name:"แผนกซ่อมบำรุงและไฟฟ้า",description:"ดูแลการซ่อมบำรุงอุปกรณ์ เครื่องจักร และระบบไฟฟ้าทั้งภายในและภายนอกองค์กร", url:"https://sites.google.com/view/mouldmatema",icon:"fas fa-tools",       iconClass:"maintenance" },
+            { id:2, name:"แผนกเทคโนโลยีสารสนเทศ",description:"จัดการระบบไอที ดูแลเครือข่าย พัฒนาซอฟต์แวร์ และให้การสนับสนุนด้านเทคโนโลยี",url:"https://mouldmate.vercel.app/IT/Home.html",icon:"fas fa-laptop-code", iconClass:"it" },
+            { id:3, name:"ฝ่ายทรัพยากรบุคคลและธุรการ",description:"บริหารงานบุคคล ดูแลสวัสดิการ พัฒนาบุคลากร และงานธุรการทั่วไป",url:"https://mouldmate.vercel.app/HR/Main.html",icon:"fas fa-users",iconClass:"hr" },
+            { id:4, name:"ฝ่ายซัพพลายเชนและโลจิสติก",description:"รับ-ส่งพัสดุเข้าโรงงาน",url:"https://mouldmate.vercel.app/SC/Home.html",icon:"fas fa-pallet",iconClass:"supplychain" },
+            { id:5, name:"ฝ่ายบัญชีและการเงิน", description:"ค้นหารหัสทรัพย์สิน เบิกเงินส่วนย่อย", url:"https://sarawutc6689-cpu.github.io/Mouldmate-Acc/Home.html", icon:"fas fa-file-invoice-dollar", iconClass:"accounting" }
+        ];
+
+        const announcements = [
+            { id:1, title:"ระบบอัปเดตล่าสุด",                      content:"เพิ่มความเร็วในการเข้าถึงข้อมูล 30% และเพิ่มฟังก์ชันการทำงานใหม่",                                                                                   type:"info",    icon:"fas fa-rocket" },
+            { id:2, title:"นโยบายความปลอดภัยใหม่",                 content:"โปรดเปลี่ยนรหัสผ่านทุก 90 วันเพื่อความปลอดภัยของข้อมูลองค์กร",                                                                                         type:"warning", icon:"fas fa-shield-alt" },
+            { id:3, title:"ระบบแจ้งปัญหาผ่านช่องทางใหม่",          content:"แจ้งปัญหาได้ตลอด 24 ชม. ผ่านระบบออนไลน์และแอปพลิเคชันมือถือ",                                                                                           type:"success", icon:"fas fa-robot" },
+            { id:4, title:"ซ่อมบำรุงระบบ Helpdesk ประจำเดือน",    content:"วันที่ 25 ของทุกเดือน เวลา 20:00-00:00 น. ระบบอาจหยุดให้บริการชั่วคราว",                                                                                  type:"warning", icon:"fas fa-tools" },
+            { id:5, title:"รายงานประสิทธิภาพองค์กร",               content:"ประสิทธิภาพองค์กรเพิ่มขึ้น 10% ในเดือนที่ผ่านมา",                                                                                                           type:"success", icon:"fas fa-chart-line" },
+            { id:6, title:"ประกาศด่วน! ระบบ Helpdesk สำรองข้อมูล",content:"จะมีทดสอบระบบการสำรองข้อมูลทั้งหมดในวันที่ 31 มกราคม 2026 เวลา 21:00 น. อาจส่งผลกระทบต่อการใช้งาน",                                                         type:"urgent",  icon:"fas fa-exclamation-triangle" }
+        ];
+
+        function getTypeLabel(type) {
+            return { info:'ข้อมูล', urgent:'ด่วน', warning:'เตือน', success:'สำเร็จ' }[type] || type;
+        }
+
+        function createNoticeCard(n) {
+            return `
+                <div class="notice-card ${n.type}">
+                    <div class="notice-card-header">
+                        <span class="notice-card-type ${n.type}">${getTypeLabel(n.type)}</span>
+                    </div>
+                    <div class="notice-card-content">
+                        <div style="display:flex;align-items:flex-start;margin-bottom:10px;">
+                            <i class="${n.icon} notice-card-icon ${n.type}"></i>
+                            <h4 style="margin:0;font-size:1.1rem;">${n.title}</h4>
+                        </div>
+                        <p style="margin-left:30px;">${n.content}</p>
+                    </div>
+                </div>`;
+        }
+
+        function renderNotices(arr) {
+            document.getElementById('noticeCount').textContent = arr.length;
+            const board = document.getElementById('noticeBoard');
+            if (!arr.length) {
+                board.innerHTML = `<div class="empty-notices"><i class="far fa-bell-slash"></i><h3>ไม่มีประกาศในขณะนี้</h3><p>เมื่อมีประกาศใหม่จะปรากฏที่นี่</p></div>`;
+                return;
+            }
+            const order = { urgent:0, warning:1, info:2, success:3 };
+            board.innerHTML = [...arr].sort((a,b) => order[a.type] - order[b.type]).map(createNoticeCard).join('');
+        }
+
+        function createDepartmentCard(dept) {
+            return `
+                <div class="department-card" data-dept-id="${dept.id}">
+                    <div class="card-header">
+                        <div class="card-icon ${dept.iconClass}"><i class="${dept.icon}"></i></div>
+                        <div class="card-title">
+                            <h3>${dept.name}</h3>
+                            <p>${dept.description}</p>
+                        </div>
+                    </div>
+                    <div class="card-description">เข้าสู่ระบบงานของแผนกเพื่อบริหารจัดการงานด้าน${dept.name.split(' ')[0]}</div>
+                    <div class="card-footer">
+                        <button class="visit-btn" onclick="window.open('${dept.url}','_blank')">
+                            <i class="fas fa-external-link-alt"></i> เข้าสู่ระบบ
+                        </button>
+                        <a href="${dept.url}" target="_blank" class="external-link"><i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>`;
+        }
+
+        function renderDepartments(arr) {
+            const grid = document.getElementById('departmentsGrid');
+            if (!arr.length) {
+                grid.innerHTML = `<div class="no-results"><i class="fas fa-search"></i><h3>ไม่พบแผนกที่คุณค้นหา</h3><p>ลองค้นหาด้วยคำอื่นหรือดูแผนกทั้งหมด</p></div>`;
+                return;
+            }
+            grid.innerHTML = arr.map(createDepartmentCard).join('');
+        }
+
+        function searchDepartments() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            renderDepartments(q ? departments.filter(d => d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q)) : departments);
+        }
+
+        function toggleNoticesVisibility() {
+            const board = document.getElementById('noticeBoard');
+            const btn   = document.getElementById('toggleNoticesBtn');
+            const hidden = board.style.display === 'none';
+            board.style.display = hidden ? 'grid' : 'none';
+            btn.innerHTML = hidden
+                ? '<i class="fas fa-chevron-down"></i> ซ่อนประกาศ'
+                : '<i class="fas fa-chevron-up"></i> แสดงประกาศ';
+        }
+
+        function init() {
+            loadUserName();
+            renderNotices(announcements);
+            renderDepartments(departments);
+            document.getElementById('searchInput').addEventListener('input', searchDepartments);
+            document.getElementById('searchInput').addEventListener('keyup', e => { if (e.key === 'Enter') searchDepartments(); });
+            document.getElementById('toggleNoticesBtn').addEventListener('click', toggleNoticesVisibility);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
